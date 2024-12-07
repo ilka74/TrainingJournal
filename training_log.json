@@ -1,14 +1,86 @@
 [
     {
-        "date": "2024-12-05 23:13:44",
-        "exercise": "2",
-        "weight": "2",
+        "datetime": "12/11/2024 03:04",
+        "exercise": "fdfd",
+        "weight": "58",
+        "repetitions": "4"
+    },
+    {
+        "datetime": "12/11/2024 03:04",
+        "exercise": "fsdfsd",
+        "weight": "68",
+        "repetitions": "5"
+    },
+    {
+        "datetime": "07/12/2024 05:06",
+        "exercise": "fdfgdfg",
+        "weight": "55",
         "repetitions": "2"
     },
     {
-        "date": "2024-12-05 23:15:32",
-        "exercise": "44",
-        "weight": "44",
+        "datetime": "12/11/2024 21:09",
+        "exercise": "dsfsd",
+        "weight": "99",
+        "repetitions": "5"
+    },
+    {
+        "datetime": "04/12/2024 15:45",
+        "exercise": "dsfsdf",
+        "weight": "123.5",
+        "repetitions": "10"
+    },
+    {
+        "datetime": "04/12/2024 10:39",
+        "exercise": "sdfdsf",
+        "weight": "88",
+        "repetitions": "6"
+    },
+    {
+        "datetime": "02/12/2024 08:42",
+        "exercise": "sdfsd",
+        "weight": "104",
+        "repetitions": "10"
+    },
+    {
+        "datetime": "12/11/2024 03:04",
+        "exercise": "fdfd",
+        "weight": "58",
         "repetitions": "4"
+    },
+    {
+        "datetime": "12/11/2024 03:04",
+        "exercise": "fsdfsd",
+        "weight": "68",
+        "repetitions": "5"
+    },
+    {
+        "datetime": "07/12/2024 05:06",
+        "exercise": "fdfgdfg",
+        "weight": "55",
+        "repetitions": "2"
+    },
+    {
+        "datetime": "12/11/2024 21:09",
+        "exercise": "dsfsd",
+        "weight": "99",
+        "repetitions": "5"
+    },
+    {
+        "datetime": "04/12/2024 15:45",
+        "exercise": "dsfsdf",
+        "weight": "123.5",
+        "repetitions": "10"
+    },
+    {
+        "datetime": "04/12/2024 10:39",
+        "exercise": "sdfdsf",
+        "weight": "88",
+        "repetitions": "6"
+    },
+    {
+        "datetime": "02/12/2024 08:42",
+        "exercise": "sdfsd",
+        "weight": "104",
+        "repetitions": "10"
     }
 ]

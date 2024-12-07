@@ -20,7 +20,7 @@
 Описание импортов:
 - import tkinter as tk: импорт основной библиотеки для создания графического пользовательского интерфейса
 - from tkinter import ttk, Toplevel, messagebox:
-1. модуль ttk предоставляет расширенные виджеты для Tkinter, такие как стилизованные кнопки, метки и комбобоксы.
+1. модуль ttk предоставляет расширенные виджеты для Tkinter, такие, как стилизованные кнопки, метки и комбобоксы.
 2. класс Toplevel используется для создания новых окон, независимых от основного окна приложения.
 3. модуль messagebox позволяет отображать всплывающие окна с сообщениями, такими как предупреждения или ошибки;
 - import json: модуль json позволяет преобразовывать в строку (и преобразовывать из строки) данные в формате JSON
@@ -28,27 +28,110 @@
 Это позволяет выполнять операции, такие как получение текущей даты и времени, форматирование и арифметику дат.
 """
 import tkinter as tk
-from tkinter import ttk, Toplevel, messagebox
+from tkinter import ttk, Toplevel, messagebox, filedialog
+from PIL import Image, ImageTk
 import json
-from datetime import datetime
+from datetime import datetime, time
+from tkcalendar import DateEntry
+from PIL.ImageOps import expand
 
+add_icon_path = 'images/add.png'
+view_icon_path = 'images/eye.png'
 # Файл для сохранения данных
 data_file = 'training_log.json'
 
+def resize_image(image_path, new_width, new_height):
+    """
+    Функция для изменения размера изображения иконок
+    """
+    image = Image.open(image_path)
+    resized_image = image.resize((new_width, new_height))
+    return ImageTk.PhotoImage(resized_image)
+
 def load_data():
-    """Загрузка данных о тренировках из файла."""
+    """
+    Загрузка данных о тренировках из файла. Применены обработки исключений для обработки возможных ошибок.
+    """
     try:
         with open(data_file, 'r') as file:
             return json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
+    except FileNotFoundError:
+        # Создание пустого файла, если он не существует
+        with open(data_file, 'w') as file:
+            json.dump([], file)  # создаем пустой список
+        messagebox.showerror("Внимание!", "Файл журнала тренировок не найден. Создан новый файл")
+        return []
+    except json.JSONDecodeError:
+        messagebox.showerror("Внимание!", "Ошибка при разборе данных из файла или журнал пустой.")
+        return []
+    except Exception as e:
+        messagebox.showerror("Ошибка!", f"Произошла ошибка: {e}")
         return []
 
 def save_data(data):
-    """Сохранение данных о тренировках в файл."""
-    with open(data_file, 'w') as file:
+    """
+    Сохранение данных о тренировках в файл
+    """
+    messagebox.showinfo("Сохранение файла", "Выберите, куда сохранить ваш журнал тренировок или нажмите отмену для сохранения в файл по умолчанию")
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".json",
+        filetypes=[("JSON files", ".json"), ("ALL files", '*.*')],
+        title="Сохранить файл как"
+    )
+    if not file_path:  # Если пользователь отменил действие, используем файл по умолчанию
+        file_path = data_file
+
+    with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
 
+
+class DateTimePicker(ttk.Frame):
+    """
+    Класс для построения виджетов выбора даты и времени
+    """
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        # Виджет даты (число/месяц/год)
+        self.date_entry = DateEntry(self, width=10, background='darkblue', foreground='white',
+                                    borderwidth=2, date_pattern='dd/mm/yyyy')
+        self.date_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        # Валидация для часов
+        self.hour_validate = self.register(self.validate_hour)
+        self.hour_spin = ttk.Spinbox(self, from_=0, to=23, width=3, format="%02.0f", validate='key',
+                                     validatecommand=(self.hour_validate, '%P'))
+        self.hour_spin.pack(side=tk.LEFT)
+
+        # Валидация для минут
+        self.minute_validate = self.register(self.validate_minute)
+        self.minute_spin = ttk.Spinbox(self, from_=0, to=59, width=3, format="%02.0f", validate='key',
+                                       validatecommand=(self.minute_validate, '%P'))
+        self.minute_spin.pack(side=tk.LEFT)
+
+    def validate_hour(self, hour):
+        """
+        Метод валидации для часов: только целые числа от 00 до 23.
+        """
+        if hour == "" or hour.isdigit() and 0 <= int(hour) <= 23:
+            return True
+        return False
+
+    def validate_minute(self, minute):
+        if minute == "" or minute.isdigit() and 0 <= int(minute) <= 59:
+            return True
+        return False
+
+    def get(self):
+        date_str = self.date_entry.get()
+        time_str = f"{int(self.hour_spin.get()):02}:{int(self.minute_spin.get()):02}"  # Форматирование с нулями
+        return f"{date_str} {time_str}"
+
+
 class TrainingLogApp:
+    """
+    Основной класс проекта.
+    """
     def __init__(self, root):
         self.root = root
         root.title("Дневник тренировок")
@@ -56,46 +139,100 @@ class TrainingLogApp:
 
     def create_widgets(self):
         # Создает виджеты для ввода данных, кнопки для добавления записи о тренировке и просмотра сохраненных записей
-        self.exercise_label = ttk.Label(self.root, text="Упражнение:")
-        self.exercise_label.grid(column=0, row=0, sticky=tk.W, padx=5, pady=5)
 
-        self.exercise_entry = ttk.Entry(self.root)
-        self.exercise_entry.grid(column=1, row=0, sticky=tk.EW, padx=5, pady=5)
+        self.main_frame = ttk.Frame(self.root)
+        self.main_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
-        self.weight_label = ttk.Label(self.root, text="Вес:")
-        self.weight_label.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
+        self.datetime_picker = DateTimePicker(self.main_frame)
+        self.datetime_picker.grid(column=0, row=0, columnspan=2, sticky=tk.EW)
 
-        self.weight_entry = ttk.Entry(self.root)
-        self.weight_entry.grid(column=1, row=1, sticky=tk.EW, padx=5, pady=5)
+        self.exercise_label = ttk.Label(self.main_frame, text="Упражнение:")
+        self.exercise_label.grid(column=0, row=1, sticky=tk.W)
+        self.exercise_entry = ttk.Entry(self.main_frame)
+        self.exercise_entry.grid(column=1, row=1, sticky=tk.EW)
 
-        self.repetitions_label = ttk.Label(self.root, text="Повторения:")
-        self.repetitions_label.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
+        self.weight_label = ttk.Label(self.main_frame, text="Вес, кг:")
+        self.weight_label.grid(column=0, row=2, sticky=tk.W)
+        self.weight_entry = ttk.Entry(self.main_frame)
+        self.weight_entry.grid(column=1, row=2, sticky=tk.EW)
 
-        self.repetitions_entry = ttk.Entry(self.root)
-        self.repetitions_entry.grid(column=1, row=2, sticky=tk.EW, padx=5, pady=5)
+        self.repetitions_label = ttk.Label(self.main_frame, text="Повторения:")
+        self.repetitions_label.grid(column=0, row=3, sticky=tk.W)
+        self.repetitions_entry = ttk.Entry(self.main_frame)
+        self.repetitions_entry.grid(column=1, row=3, sticky=tk.EW)
 
-        self.add_button = ttk.Button(self.root, text="Добавить запись", command=self.add_entry)
-        self.add_button.grid(column=0, row=3, columnspan=2, pady=10)
+        self.add_icon = resize_image(add_icon_path, 20, 20)
+        self.add_button = ttk.Button(
+            self.main_frame,
+            text="Добавить запись",
+            image=self.add_icon,
+            compound="left",
+            command=self.add_entry
+        )
+        self.add_button.grid(column=0, row=4, columnspan=2, pady=5)
 
-        self.view_button = ttk.Button(self.root, text="Просмотреть записи", command=self.view_records)
-        self.view_button.grid(column=0, row=4, columnspan=2, pady=10)
+        self.view_icon = resize_image(view_icon_path, 20, 20)
+        self.view_button = ttk.Button(
+            self.main_frame,
+            text="Просмотреть записи",
+            image=self.view_icon,
+            compound="left",
+            command=self.view_records
+        )
+        self.view_button.grid(column=0, row=5, columnspan=2, pady=5)
+
+        # Поля для выбора даты начала и окончания (необходимы для просмотра записей за определенный период):
+        self.start_date_label = ttk.Label(self.main_frame, text="Дата начала")
+        self.start_date_label.grid(column=0, row=6, sticky=tk.W)
+        self.start_date_entry = DateEntry(self.main_frame, date_pattern='dd/mm/yyyy')
+        self.start_date_entry.grid(column=1, row=6, sticky=tk.EW)
+
+        self.end_date_label = ttk.Label(self.main_frame, text="Дата окончания:")
+        self.end_date_label.grid(column=0, row=7, sticky=tk.W)
+        self.end_date_entry = DateEntry(self.main_frame, date_pattern='dd/mm/yyyy')
+        self.end_date_entry.grid(column=1, row=7, sticky=tk.EW)
+
+        # Формируем кнопку фильтра записей по дате
+        self.filter_button = ttk.Button(
+            self.main_frame,
+            text="Отфильтровать записи по дате",
+            command=self.filter_records
+        )
+        self.filter_button.grid(column=0, row=8, columnspan=2, pady=5)
+
+        self.main_frame.columnconfigure(1, weight=1)
 
     def add_entry(self):
         """
         Этот метод считывает данные из полей ввода, проверяет их наличие, создает словарь с информацией о тренировке,
         добавляет его в список с данными и сохраняет изменения в файл.
         """
-        date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        datetime_str = self.datetime_picker.get()
         exercise = self.exercise_entry.get()
         weight = self.weight_entry.get()
         repetitions = self.repetitions_entry.get()
 
         if not (exercise and weight and repetitions):
-            messagebox.showerror("Ошибка", "Все поля должны быть заполнены!")
+            messagebox.showerror("Ошибка!", "Все поля должны быть заполнены!")
+            return
+
+        # Проверка на корректность указанного веса
+        try:
+            weight_value = float(weight)  # Пробуем преобразовать вес в число с плавающей запятой
+            if weight_value <= 0 or weight_value > 201:
+                messagebox.showerror("Ошибка!", "Вес должен быть положительным числом не более 200 кг.")
+                return
+        except ValueError:
+            messagebox.showerror("Ошибка!", "Вес должен быть числом")
+            return
+
+        # Проверка на корректность указанных повторений
+        if not repetitions.isdigit() or int(repetitions) <= 0:
+            messagebox.showerror("Ошибка!", "Количество повторений должно быть целым положительным числом")
             return
 
         entry = {
-            'date': date,
+            'datetime': datetime_str,
             'exercise': exercise,
             'weight': weight,
             'repetitions': repetitions
@@ -109,14 +246,15 @@ class TrainingLogApp:
         self.exercise_entry.delete(0, tk.END)
         self.weight_entry.delete(0, tk.END)
         self.repetitions_entry.delete(0, tk.END)
-        messagebox.showinfo("Успешно", "Запись успешно добавлена!")
+        messagebox.showinfo("Успешно!", "Запись успешно добавлена!")
 
-    def view_records(self):
+    def view_records(self, records=None):
         """
         Загружает сохраненные данные и отображает их в новом окне с помощью виджета Treeview.
         Для каждой записи создается строка в таблице.
         """
-        data = load_data()
+        if records is None:
+            records = load_data()
         records_window = Toplevel(self.root)
         records_window.title("Записи тренировок")
 
@@ -126,10 +264,39 @@ class TrainingLogApp:
         tree.heading('Вес', text="Вес")
         tree.heading('Повторения', text="Повторения")
 
-        for entry in data:
-            tree.insert('', tk.END, values=(entry['date'], entry['exercise'], entry['weight'], entry['repetitions']))
-
+        for entry in records:
+            tree.insert('', tk.END, values=(
+            entry.get('datetime', 'Неизвестно'),
+            entry.get('exercise', ''),
+            entry.get('weight', ''),
+            entry.get('repetitions', '')))
         tree.pack(expand=True, fill=tk.BOTH)
+
+    def filter_records(self):
+        """
+        Метод фильтрации записей по диапазону дат
+        """
+        # Получаем даты из виджетов DateEntry
+        start_date = self.start_date_entry.get_date()
+        end_date = self.end_date_entry.get_date()
+
+        # Преобразуем даты в объекты datetime, добавляя время начала и конца дня
+        start_datetime = datetime.combine(start_date, time.min)  # 00:00
+        end_datetime = datetime.combine(end_date, time.max)  # 23:59:59
+
+        if start_datetime > end_datetime:
+            messagebox.showerror("Ошибка!", "Дата начала не может быть позже даты окончания.")
+            return
+
+        # Загружаем данные и фильтруем
+        data = load_data()
+        filtered_records = [
+            entry for entry in data
+            if start_datetime <= datetime.strptime(entry['datetime'], '%d/%m/%Y %H:%M') <= end_datetime
+        ]
+
+        # Отображаем отфильтрованные записи
+        self.view_records(filtered_records)
 
 def main():
     root = tk.Tk()
