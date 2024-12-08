@@ -27,18 +27,28 @@
 - from datetime import datetime: класс datetime из модуля datetime предоставляет методы для работы с датами и временем.
 Это позволяет выполнять операции, такие как получение текущей даты и времени, форматирование и арифметику дат.
 """
+import os
 import tkinter as tk
+from os import write
 from tkinter import ttk, Toplevel, messagebox, filedialog
 from PIL import Image, ImageTk
 import json
+import csv
 from datetime import datetime, time
 from tkcalendar import DateEntry
 from PIL.ImageOps import expand
 
+# Файлы с иконками
 add_icon_path = 'images/add.png'
 view_icon_path = 'images/eye.png'
-# Файл для сохранения данных
+export_icon_path = 'images/export.png'
+import_icon_path = 'images/import.png'
+
+# Файл (по умолчанию) для сохранения данных
 data_file = 'training_log.json'
+
+# Создание папки для файлов обмена данными, если она не существует
+os.makedirs('files', exist_ok=True)
 
 def resize_image(image_path, new_width, new_height):
     """
@@ -135,10 +145,15 @@ class TrainingLogApp:
     def __init__(self, root):
         self.root = root
         root.title("Дневник тренировок")
+        self.exercises = []  # Список для хранения уникальных упражнений
         self.create_widgets()
+        self.update_exercise_filter()  # Обновляем список упражнений
 
     def create_widgets(self):
-        # Создает виджеты для ввода данных, кнопки для добавления записи о тренировке и просмотра сохраненных записей
+        """
+        Этот метод создает виджеты для ввода данных, кнопки для добавления записи о тренировке, просмотра и фильтрации
+        сохраненных записей. Также реализованы кнопки экспорта записей в файлы CSV формата и импорта записей из них.
+        """
 
         self.main_frame = ttk.Frame(self.root)
         self.main_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
@@ -181,7 +196,7 @@ class TrainingLogApp:
         )
         self.view_button.grid(column=0, row=5, columnspan=2, pady=5)
 
-        # Поля для выбора даты начала и окончания (необходимы для просмотра записей за определенный период):
+        # Поля для выбора даты
         self.start_date_label = ttk.Label(self.main_frame, text="Дата начала")
         self.start_date_label.grid(column=0, row=6, sticky=tk.W)
         self.start_date_entry = DateEntry(self.main_frame, date_pattern='dd/mm/yyyy')
@@ -192,15 +207,49 @@ class TrainingLogApp:
         self.end_date_entry = DateEntry(self.main_frame, date_pattern='dd/mm/yyyy')
         self.end_date_entry.grid(column=1, row=7, sticky=tk.EW)
 
-        # Формируем кнопку фильтра записей по дате
-        self.filter_button = ttk.Button(
-            self.main_frame,
-            text="Отфильтровать записи по дате",
-            command=self.filter_records
-        )
-        self.filter_button.grid(column=0, row=8, columnspan=2, pady=5)
+        # Поле для фильтрации по упражнению (используем Combobox)
+        self.exercise_filter_label = ttk.Label(self.main_frame, text="Фильтр по упражнению:")
+        self.exercise_filter_label.grid(column=0, row=8, sticky=tk.W)
+        self.exercise_filter_entry = ttk.Combobox(self.main_frame)
+        self.exercise_filter_entry.grid(column=1, row=8, sticky=tk.EW)
 
+        # Формируем кнопку фильтра записей по дате и упражнению
+        self.filter_button = ttk.Button(self.main_frame, text="Отфильтровать записи", command=self.filter_records)
+        self.filter_button.grid(column=0, row=9, columnspan=2, pady=5)
+
+        # Кнопка экспорта в файл формата CSV
+        self.export_icon = resize_image(export_icon_path, 20, 20)
+        self.export_button = ttk.Button(
+            self.main_frame,
+            text="Экспорт в CSV",
+            image=self.export_icon,
+            compound="left",
+            command=self.export_to_csv
+        )
+        self.export_button.grid(column=0, row=10, columnspan=2, pady=5)
+
+        # Кнопка импорта из файла формата CSV
+        self.import_icon = resize_image(import_icon_path, 20, 20)
+        self.import_button = ttk.Button(
+            self.main_frame,
+            text="Импорт из CSV",
+            image=self.import_icon,
+            compound="left",
+            command=self.import_from_csv
+        )
+        self.import_button.grid(column=0, row=11, columnspan=2, pady=5)
+
+
+        # Настройки колонок в основном фрейме при изменении размера окна
         self.main_frame.columnconfigure(1, weight=1)
+
+    def update_exercise_filter(self):
+        """
+        Обновляет список доступных упражнений для фильтрации.
+        """
+        data = load_data()
+        self.exercises = sorted(set(entry['exercise'] for entry in data))  # Получаем уникальные упражнения
+        self.exercise_filter_entry['values'] = self.exercises  # Устанавливаем значения в Combobox
 
     def add_entry(self):
         """
@@ -219,8 +268,8 @@ class TrainingLogApp:
         # Проверка на корректность указанного веса
         try:
             weight_value = float(weight)  # Пробуем преобразовать вес в число с плавающей запятой
-            if weight_value <= 0 or weight_value > 201:
-                messagebox.showerror("Ошибка!", "Вес должен быть положительным числом не более 200 кг.")
+            if weight_value <= 0 or weight_value > 200:
+                messagebox.showerror("Ошибка!", "Вес должен быть положительным числом до 200 кг.")
                 return
         except ValueError:
             messagebox.showerror("Ошибка!", "Вес должен быть числом")
@@ -241,6 +290,8 @@ class TrainingLogApp:
         data = load_data()
         data.append(entry)
         save_data(data)
+
+        self.update_exercise_filter()
 
         # Очистка полей ввода после добавления
         self.exercise_entry.delete(0, tk.END)
@@ -274,11 +325,12 @@ class TrainingLogApp:
 
     def filter_records(self):
         """
-        Метод фильтрации записей по диапазону дат
+        Метод фильтрации записей по диапазону дат и упражнению
         """
         # Получаем даты из виджетов DateEntry
         start_date = self.start_date_entry.get_date()
         end_date = self.end_date_entry.get_date()
+        exercise_filter = self.exercise_filter_entry.get().strip()
 
         # Преобразуем даты в объекты datetime, добавляя время начала и конца дня
         start_datetime = datetime.combine(start_date, time.min)  # 00:00
@@ -293,10 +345,108 @@ class TrainingLogApp:
         filtered_records = [
             entry for entry in data
             if start_datetime <= datetime.strptime(entry['datetime'], '%d/%m/%Y %H:%M') <= end_datetime
+               and (exercise_filter.lower() in entry['exercise'].lower() if exercise_filter else True)
         ]
 
         # Отображаем отфильтрованные записи
         self.view_records(filtered_records)
+
+    def export_to_csv(self):
+        """
+        Метод для экспорта данных в формат CSV. Пользователь задает имя файла в диалоговом окне,
+        а файл сохраняется в папке files внутри проекта.
+        """
+        data = load_data()
+        if not data:
+            messagebox.showerror("Ошибка!", "Нет данных для экспорта")
+            return
+
+        file_name = filedialog.asksaveasfilename(
+            initialdir="files",
+            title="Сохранить как",
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
+        )
+
+        if not file_name:
+            return
+
+        try:
+            with open(file_name, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow(["Дата", "Упражнение", "Вес", "Повторения"])
+                for entry in data:
+                    writer.writerow([entry['datetime'], entry['exercise'], entry['weight'], entry['repetitions']])
+
+            messagebox.showinfo("Успешно", f"Данные успешно экспортированы в файл: {file_name}")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Ошибка экспорта данных: {e}")
+
+    def import_from_csv(self):
+        """
+        Метод для импорта данных из CSV файла. Пользователь выбирает файл, и данные из него добавляются в журнал.
+        """
+        file_name = filedialog.askopenfilename(
+            initialdir="files",
+            title="Выбрать файл",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
+        )
+
+        if not file_name:
+            return
+
+        try:
+            with open(file_name, mode='r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                imported_data = []
+                for row in reader:
+                    # Проверяем наличие всех необходимых полей в строке
+                    if "Дата" in row and "Упражнение" in row and "Вес" in row and "Повторения" in row:
+                        try:
+                            # Проверяем правильность формата даты
+                            datetime.strptime(row["Дата"], '%d/%m/%Y %H:%M')
+
+                            # Проверяем корректность значения "Вес"
+                            weight = float(row["Вес"])
+                            if weight <= 0 or weight > 200:
+                                messagebox.showerror("Ошибка!",
+                                                     f"Некорректное значение веса: {row['Вес']}. Вес должен быть положительным числом не более 200.")
+                                return
+
+                            # Проверяем корректность значения "Повторения"
+                            repetitions = int(row["Повторения"])
+                            if repetitions <= 0:
+                                messagebox.showerror("Ошибка!",
+                                                     f"Некорректное значение повторений: {row['Повторения']}. Повторения должны быть целым положительным числом.")
+                                return
+
+                            # Если все проверки пройдены, добавляем запись
+                            imported_data.append({
+                                "datetime": row["Дата"],
+                                "exercise": row["Упражнение"],
+                                "weight": row["Вес"],
+                                "repetitions": row["Повторения"]
+                            })
+                        except ValueError as e:
+                            messagebox.showerror("Ошибка!", f"Ошибка в строке: {row}. Проверьте формат данных. {e}")
+                            return
+                    else:
+                        messagebox.showerror("Ошибка!", "Некорректный формат данных в файле. Убедитесь, что файл "
+                                                        "содержит столбцы 'Дата', 'Упражнение', 'Вес', 'Повторения'.")
+                        return
+            if imported_data:
+                # Загружаем текущие данные, добавляем новые и сохраняем
+                data = load_data()
+                data.extend(imported_data)
+                save_data(data)
+                self.update_exercise_filter()
+                messagebox.showinfo("Успешно!", f"Данные успешно импортированы из файла: {file_name}")
+            else:
+                messagebox.showerror("Ошибка", "Файл не содержит данных для импорта.")
+
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Ошибка импорта данных: {e}")
+
 
 def main():
     root = tk.Tk()
