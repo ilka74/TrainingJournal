@@ -1,5 +1,5 @@
 """
-Проект "Журнал тренировок". Реализованы ввод информации о тренировках и запись этой информации в файл формата JSON.
+Проект "Дневник тренировок". Реализованы ввод информации о тренировках и запись этой информации в файл формата JSON.
 В проекте используется библиотека tkinter для графического интерфейса
 
 Функции загрузки и сохранения данных:
@@ -43,6 +43,7 @@ add_icon_path = 'images/add.png'
 view_icon_path = 'images/eye.png'
 export_icon_path = 'images/export.png'
 import_icon_path = 'images/import.png'
+stats_icon_path = 'images/stats.png'
 
 # Файл (по умолчанию) для сохранения данных
 data_file = 'training_log.json'
@@ -152,7 +153,8 @@ class TrainingLogApp:
     def create_widgets(self):
         """
         Этот метод создает виджеты для ввода данных, кнопки для добавления записи о тренировке, просмотра и фильтрации
-        сохраненных записей. Также реализованы кнопки экспорта записей в файлы CSV формата и импорта записей из них.
+        сохраненных записей. Также реализованы кнопки экспорта записей в файлы CSV формата и импорта записей из них;
+        кнопки формирования статистической информации и построения графиков
         """
 
         self.main_frame = ttk.Frame(self.root)
@@ -176,7 +178,7 @@ class TrainingLogApp:
         self.repetitions_entry = ttk.Entry(self.main_frame)
         self.repetitions_entry.grid(column=1, row=3, sticky=tk.EW)
 
-        self.add_icon = resize_image(add_icon_path, 20, 20)
+        self.add_icon = resize_image(add_icon_path, 30, 20)
         self.add_button = ttk.Button(
             self.main_frame,
             text="Добавить запись",
@@ -186,7 +188,7 @@ class TrainingLogApp:
         )
         self.add_button.grid(column=0, row=4, columnspan=2, pady=5)
 
-        self.view_icon = resize_image(view_icon_path, 20, 20)
+        self.view_icon = resize_image(view_icon_path, 30, 30)
         self.view_button = ttk.Button(
             self.main_frame,
             text="Просмотреть записи",
@@ -217,28 +219,46 @@ class TrainingLogApp:
         self.filter_button = ttk.Button(self.main_frame, text="Отфильтровать записи", command=self.filter_records)
         self.filter_button.grid(column=0, row=9, columnspan=2, pady=5)
 
+        # Контейнер для кнопок "Экспорт в CSV" и "Импорт из CSV" - чтобы эти кнопки расположить на одной строке
+        self.csv_frame = ttk.Frame(self.main_frame)
+        self.csv_frame.grid(column=0, row=10, columnspan=2, pady=5)
+
+        # Настраиваем центральное расположение кнопок
+        self.csv_frame.columnconfigure(0, weight=1)
+        self.csv_frame.columnconfigure(1, weight=1)
+
         # Кнопка экспорта в файл формата CSV
         self.export_icon = resize_image(export_icon_path, 20, 20)
         self.export_button = ttk.Button(
-            self.main_frame,
+            self.csv_frame,
             text="Экспорт в CSV",
             image=self.export_icon,
             compound="left",
             command=self.export_to_csv
         )
-        self.export_button.grid(column=0, row=10, columnspan=2, pady=5)
+        self.export_button.grid(column=0, row=0, padx=(0, 10), sticky=tk.E)
 
         # Кнопка импорта из файла формата CSV
         self.import_icon = resize_image(import_icon_path, 20, 20)
         self.import_button = ttk.Button(
-            self.main_frame,
+            self.csv_frame,
             text="Импорт из CSV",
             image=self.import_icon,
             compound="left",
             command=self.import_from_csv
         )
-        self.import_button.grid(column=0, row=11, columnspan=2, pady=5)
+        self.import_button.grid(column=1, row=0, padx=(10, 0), sticky=tk.W)
 
+        # Кнопка формирования статистики
+        self.stats_icon = resize_image(stats_icon_path, 20, 30)
+        self.stats_button = ttk.Button(
+            self.main_frame,
+            text="Статистика",
+            image=self.stats_icon,
+            compound="left",
+            command=self.show_statistics
+        )
+        self.stats_button.grid(column=0, row=11, columnspan=2, pady=5)
 
         # Настройки колонок в основном фрейме при изменении размера окна
         self.main_frame.columnconfigure(1, weight=1)
@@ -572,6 +592,64 @@ class TrainingLogApp:
         save_data(data)
         messagebox.showinfo("Успешно!", "Запись успешно удалена.")
         self.view_records()  # Обновляем отображение записей
+
+    def show_statistics(self):
+        """
+        Метод для отображения статистики по выполненным упражнениям.
+        """
+        # Получаем диапазон дат
+        start_date = self.start_date_entry.get_date()
+        end_date = self.end_date_entry.get_date()
+        exercise_filter = self.exercise_filter_entry.get().strip()
+
+        # Преобразуем даты в объекты datetime
+        start_datetime = datetime.combine(start_date, time.min)
+        end_datetime = datetime.combine(end_date, time.max)
+
+        if start_datetime > end_datetime:
+            messagebox.showerror("Ошибка!", "Дата начала не может быть позже даты окончания.")
+            return
+
+        # Загружаем данные и фильтруем по датам и упражнению
+        data = load_data()
+        filtered_records = [
+            entry for entry in data
+            if start_datetime <= datetime.strptime(entry['datetime'], '%d/%m/%Y %H:%M') <= end_datetime
+               and (exercise_filter.lower() in entry['exercise'].lower() if exercise_filter else True)
+        ]
+
+        # Вычисляем статистику
+        total_weight = 0
+        total_repetitions = 0
+        exercises_stats = {}
+
+        for entry in filtered_records:
+            weight = float(entry['weight'])
+            repetitions = int(entry['repetitions'])
+            total_weight += weight * repetitions
+            total_repetitions += repetitions
+
+            exercise = entry['exercise']
+            if exercise not in exercises_stats:
+                exercises_stats[exercise] = {'weight': 0, 'repetitions': 0}
+            exercises_stats[exercise]['weight'] += weight * repetitions
+            exercises_stats[exercise]['repetitions'] += repetitions
+
+        # Создаем окно для отображения статистики
+        stats_window = Toplevel(self.root)
+        stats_window.title("Статистика тренировок")
+        stats_window.geometry("400x300")
+
+        # Общая статистика
+        ttk.Label(stats_window, text=f"Суммарный вес: {total_weight:.2f} кг").pack(pady=5)
+        ttk.Label(stats_window, text=f"Суммарное количество повторений: {total_repetitions}").pack(pady=5)
+
+        # Статистика по упражнениям
+        ttk.Label(stats_window, text="Упражнения:").pack(pady=5)
+        for exercise, stats in exercises_stats.items():
+            ttk.Label(
+                stats_window,
+                text=f"{exercise}: {stats['weight']:.2f} кг, {stats['repetitions']} повторений").pack(pady=2)
 
 
 def main():
