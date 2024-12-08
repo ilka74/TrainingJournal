@@ -306,22 +306,33 @@ class TrainingLogApp:
         """
         if records is None:
             records = load_data()
+
+        # Создаем новое окно для отображения записей
         records_window = Toplevel(self.root)
         records_window.title("Записи тренировок")
 
-        tree = ttk.Treeview(records_window, columns=("Дата", "Упражнение", "Вес", "Повторения"), show="headings")
-        tree.heading('Дата', text="Дата")
-        tree.heading('Упражнение', text="Упражнение")
-        tree.heading('Вес', text="Вес")
-        tree.heading('Повторения', text="Повторения")
+        # Создаем Treeview и сохраняем его в атрибут класса
+        self.tree = ttk.Treeview(records_window, columns=("Дата", "Упражнение", "Вес", "Повторения"), show="headings")
+        self.tree.heading('Дата', text="Дата")
+        self.tree.heading('Упражнение', text="Упражнение")
+        self.tree.heading('Вес', text="Вес")
+        self.tree.heading('Повторения', text="Повторения")
 
+        # Добавляем строки в Treeview
         for entry in records:
-            tree.insert('', tk.END, values=(
+            self.tree.insert('', tk.END, values=(
             entry.get('datetime', 'Неизвестно'),
             entry.get('exercise', ''),
             entry.get('weight', ''),
-            entry.get('repetitions', '')))
-        tree.pack(expand=True, fill=tk.BOTH)
+            entry.get('repetitions', '')
+            ))
+
+        # Отображаем Treeview
+        self.tree.pack(expand=True, fill=tk.BOTH)
+
+        # Кнопки для редактирования и удаления
+        ttk.Button(records_window, text="Редактировать", command=self.edit_record).pack(side=tk.LEFT, padx=5, pady=5)
+        ttk.Button(records_window, text="Удалить", command=self.delete_record).pack(side=tk.LEFT, padx=5, pady=5)
 
     def filter_records(self):
         """
@@ -446,6 +457,121 @@ class TrainingLogApp:
 
         except Exception as e:
             messagebox.showerror("Ошибка", f"Ошибка импорта данных: {e}")
+
+    def edit_record(self):
+        """
+        Метод для редактирования выбранной записи.
+        """
+        # Окно с записями должно быть открыто
+        try:
+            selected_item = self.tree.selection()[0]  # Получаем выбранную строку
+            values = self.tree.item(selected_item, "values")  # Считываем данные строки
+        except IndexError:
+            messagebox.showerror("Ошибка!", "Выберите запись для редактирования")
+            return
+
+        # Открываем окно для редактирования
+        edit_window = Toplevel(self.root)
+        edit_window.title("Редактирование записи")
+        edit_window.geometry("350x300")
+
+        ttk.Label(edit_window, text="Дата и время").pack(pady=5)
+        datetime_entry = ttk.Entry(edit_window)
+        datetime_entry.insert(0, values[0])  # Заполняем текущими значениями
+        datetime_entry.pack(pady=5)
+
+        ttk.Label(edit_window, text="Упражнение:").pack(pady=5)
+        exercise_entry = ttk.Entry(edit_window)
+        exercise_entry.insert(0, values[1])
+        exercise_entry.pack(pady=5)
+
+        ttk.Label(edit_window, text="Вес, кг:").pack(pady=5)
+        weight_entry = ttk.Entry(edit_window)
+        weight_entry.insert(0, values[2])
+        weight_entry.pack(pady=5)
+
+        ttk.Label(edit_window, text="Повторения:").pack(pady=5)
+        repetitions_entry = ttk.Entry(edit_window)
+        repetitions_entry.insert(0, values[3])
+        repetitions_entry.pack(pady=5)
+
+        def save_changes():
+            """
+            Сохраняем изменения в файл.
+            """
+            new_datetime = datetime_entry.get().strip()
+            new_exercise = exercise_entry.get().strip()
+            new_weight = weight_entry.get().strip()
+            new_repetitions = repetitions_entry.get().strip()
+
+            # Проверяем корректность данных
+            try:
+                datetime.strptime(new_datetime, '%d/%m/%Y %H:%M')  # Проверяем формат даты
+            except ValueError:
+                messagebox.showerror("Ошибка!", "Некорректный формат даты. Формат: ДД/ММ/ГГГГ ЧЧ:ММ")
+                return
+
+            try:
+                new_weight = float(new_weight)
+                if new_weight <= 0 or new_weight > 200:
+                    messagebox.showerror("Ошибка!", "Вес должен быть положительным числом не более 200 кг.")
+                    return
+            except ValueError:
+                messagebox.showerror("Ошибка!", "Вес должен быть числом.")
+                return
+
+            if not new_repetitions.isdigit() or int(new_repetitions) <= 0:
+                messagebox.showerror("Ошибка!", "Повторения должны быть целым положительным числом.")
+                return
+
+            # Загружаем текущие данные
+            data = load_data()
+            for entry in data:
+                if entry["datetime"] == values[0] and entry["exercise"] == values[1]:
+                    # Обновляем запись
+                    entry["datetime"] = new_datetime
+                    entry["exercise"] = new_exercise
+                    entry["weight"] = str(new_weight)
+                    entry["repetitions"] = new_repetitions
+                    break
+
+            # Сохраняем изменения
+            save_data(data)
+            messagebox.showinfo("Успешно!", "Запись успешно обновлена.")
+            edit_window.destroy()
+            self.view_records()  # Обновляем отображение записей
+
+        ttk.Button(edit_window, text="Сохранить", command=save_changes).pack(pady=10)
+
+    def delete_record(self):
+        """
+        Метод для удаления выбранной записи.
+        """
+        try:
+            selected_item = self.tree.selection()[0]  # Получаем выбранную строку
+            values = self.tree.item(selected_item, "values")  # Считываем данные строки
+        except IndexError:
+            messagebox.showerror("Ошибка!", "Выберите запись для удаления.")
+            return
+
+        # Подтверждение удаления
+        confirm = messagebox.askyesno("Подтверждение", "Вы уверены, что хотите удалить эту запись?")
+        if not confirm:
+            return
+
+        # Удаляем запись из данных
+        data = load_data()
+        data = [entry for entry in data if not (
+                entry["datetime"] == values[0] and
+                entry["exercise"] == values[1] and
+                entry["weight"] == values[2] and
+                entry["repetitions"] == values[3]
+        )]
+
+        # Сохраняем изменения
+        save_data(data)
+        messagebox.showinfo("Успешно!", "Запись успешно удалена.")
+        self.view_records()  # Обновляем отображение записей
 
 
 def main():
