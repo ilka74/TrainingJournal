@@ -1,164 +1,86 @@
 [
     {
-        "datetime": "12/11/2024 03:04",
-        "exercise": "fsdfsd",
-        "weight": "68",
-        "repetitions": "5"
+        "datetime": "26/11/2024 07:11",
+        "exercise": "\u041e\u0442\u0436\u0438\u043c\u0430\u043d\u0438\u044f",
+        "weight": "110",
+        "repetitions": "4"
     },
     {
-        "datetime": "07/12/2024 05:06",
-        "exercise": "fdfgdfg",
-        "weight": "55",
-        "repetitions": "2"
+        "datetime": "26/11/2024 07:20",
+        "exercise": "\u041f\u0440\u0438\u0441\u0435\u0434\u0430\u043d\u0438\u044f",
+        "weight": "110",
+        "repetitions": "12"
     },
     {
-        "datetime": "12/11/2024 21:09",
-        "exercise": "dsfsd",
-        "weight": "99",
-        "repetitions": "5"
-    },
-    {
-        "datetime": "04/12/2024 15:45",
-        "exercise": "dsfsdf",
-        "weight": "123.5",
+        "datetime": "26/11/2024 07:27",
+        "exercise": "\u041f\u0440\u044b\u0436\u043a\u0438 \u043d\u0430 \u043c\u0435\u0441\u0442\u0435",
+        "weight": "110",
         "repetitions": "10"
     },
     {
-        "datetime": "04/12/2024 10:39",
-        "exercise": "sdfdsf",
-        "weight": "90.0",
-        "repetitions": "6"
+        "datetime": "28/11/2024 11:34",
+        "exercise": "\u0425\u043e\u0434\u044c\u0431\u0430 \u043d\u0430 \u043c\u0435\u0441\u0442\u0435",
+        "weight": "110",
+        "repetitions": "20"
     },
     {
-        "datetime": "12/11/2024 03:04",
-        "exercise": "fsdfsd",
-        "weight": "68",
-        "repetitions": "5"
-    },
-    {
-        "datetime": "07/12/2024 05:06",
-        "exercise": "fdfgdfg",
-        "weight": "55",
-        "repetitions": "2"
-    },
-    {
-        "datetime": "12/11/2024 21:09",
-        "exercise": "dsfsd",
-        "weight": "99",
-        "repetitions": "5"
-    },
-    {
-        "datetime": "04/12/2024 15:45",
-        "exercise": "dsfsdf",
-        "weight": "123.5",
+        "datetime": "28/11/2024 11:58",
+        "exercise": "\u041e\u0442\u0436\u0438\u043c\u0430\u043d\u0438\u044f",
+        "weight": "110",
         "repetitions": "10"
     },
     {
-        "datetime": "04/12/2024 10:39",
-        "exercise": "sdfdsf",
-        "weight": "88",
-        "repetitions": "6"
-    },
-    {
-        "datetime": "02/12/2024 08:42",
-        "exercise": "sdfsd",
-        "weight": "104",
+        "datetime": "30/11/2024 12:20",
+        "exercise": "\u0416\u0438\u043c \u043b\u0435\u0436\u0430",
+        "weight": "109",
         "repetitions": "10"
     },
     {
-        "datetime": "12/11/2024 03:04",
-        "exercise": "fsdfsd",
-        "weight": "68",
-        "repetitions": "5"
+        "datetime": "03/12/2024 08:20",
+        "exercise": "\u0425\u043e\u0434\u044c\u0431\u0430 \u043d\u0430 \u043c\u0435\u0441\u0442\u0435",
+        "weight": "107",
+        "repetitions": "30"
     },
     {
-        "datetime": "07/12/2024 05:06",
-        "exercise": "fdfgdfg",
-        "weight": "55",
-        "repetitions": "2"
+        "datetime": "03/12/2024 08:50",
+        "exercise": "\u041f\u0440\u0438\u0441\u0435\u0434\u0430\u043d\u0438\u044f",
+        "weight": "107",
+        "repetitions": "25"
     },
     {
-        "datetime": "12/11/2024 21:09",
-        "exercise": "dsfsd",
-        "weight": "99",
-        "repetitions": "5"
+        "datetime": "03/12/2024 09:15",
+        "exercise": "\u0416\u0438\u043c \u043b\u0435\u0436\u0430",
+        "weight": "107",
+        "repetitions": "14"
     },
     {
-        "datetime": "04/12/2024 15:45",
-        "exercise": "dsfsdf",
-        "weight": "123.5",
-        "repetitions": "10"
+        "datetime": "05/12/2024 15:10",
+        "exercise": "\u0425\u043e\u0434\u044c\u0431\u0430 \u043d\u0430 \u043c\u0435\u0441\u0442\u0435",
+        "weight": "105.6",
+        "repetitions": "30"
     },
     {
-        "datetime": "04/12/2024 10:39",
-        "exercise": "sdfdsf",
-        "weight": "88",
-        "repetitions": "6"
+        "datetime": "05/12/2024 15:45",
+        "exercise": "\u041f\u0440\u0438\u0441\u0435\u0434\u0430\u043d\u0438\u044f",
+        "weight": "105.6",
+        "repetitions": "32"
     },
     {
-        "datetime": "02/12/2024 08:42",
-        "exercise": "sdfsd",
-        "weight": "104",
-        "repetitions": "10"
+        "datetime": "07/12/2024 12:45",
+        "exercise": "\u041f\u0440\u044b\u0436\u043a\u0438 \u043d\u0430 \u043c\u0435\u0441\u0442\u0435",
+        "weight": "106.8",
+        "repetitions": "20"
     },
     {
-        "datetime": "12/11/2024 03:04",
-        "exercise": "fsdfsd",
-        "weight": "68",
-        "repetitions": "5"
+        "datetime": "07/12/2024 12:57",
+        "exercise": "\u041f\u0440\u0438\u0441\u0435\u0434\u0430\u043d\u0438\u044f",
+        "weight": "106.8",
+        "repetitions": "28"
     },
     {
-        "datetime": "07/12/2024 05:06",
-        "exercise": "fdfgdfg",
-        "weight": "55",
-        "repetitions": "2"
-    },
-    {
-        "datetime": "12/11/2024 21:09",
-        "exercise": "dsfsd",
-        "weight": "99",
-        "repetitions": "5"
-    },
-    {
-        "datetime": "04/12/2024 15:45",
-        "exercise": "dsfsdf",
-        "weight": "123.5",
-        "repetitions": "10"
-    },
-    {
-        "datetime": "04/12/2024 10:39",
-        "exercise": "sdfdsf",
-        "weight": "88",
-        "repetitions": "6"
-    },
-    {
-        "datetime": "02/12/2024 08:42",
-        "exercise": "sdfsd",
-        "weight": "104",
-        "repetitions": "10"
-    },
-    {
-        "datetime": "12/11/2024 03:04",
-        "exercise": "fsdfsd",
-        "weight": "68",
-        "repetitions": "5"
-    },
-    {
-        "datetime": "07/12/2024 05:06",
-        "exercise": "fdfgdfg",
-        "weight": "55",
-        "repetitions": "2"
-    },
-    {
-        "datetime": "12/11/2024 21:09",
-        "exercise": "dsfsd",
-        "weight": "99",
-        "repetitions": "5"
-    },
-    {
-        "datetime": "04/12/2024 15:45",
-        "exercise": "dsfsdf",
-        "weight": "123.5",
-        "repetitions": "10"
+        "datetime": "07/12/2024 15:03",
+        "exercise": "\u0416\u0438\u043c \u043b\u0435\u0436\u0430",
+        "weight": "106.5",
+        "repetitions": "18"
     }
 ]

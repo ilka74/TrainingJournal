@@ -1,49 +1,125 @@
 """
-Проект "Дневник тренировок". Реализованы ввод информации о тренировках и запись этой информации в файл формата JSON.
-В проекте используется библиотека tkinter для графического интерфейса
+Проект "Дневник тренировок".
+Реализованы ввод информации о тренировках и запись этой информации в файл формата JSON.
+Также доступны чтение информации, фильтрация записей, импорт в файлы формата CSV, построение графиков.
 
-Функции загрузки и сохранения данных:
-- load_data: пытается открыть файл с именем, указанным в переменной data_file, и загрузить из него данные в формате JSON. Если файл не существует или происходит ошибка при разборе данных, возвращается пустой список;
-- save_data: принимает данные о тренировках в виде списка словарей и сохраняет их в файл в формате JSON. Данные форматируются с отступом для лучшей читаемости
+В проекте используется библиотеки:
+- tkinter для графического интерфейса;
+- datetime для работы с датами;
+- matplotlib для построения графиков.
 
-Класс TrainingLogApp:
-- Конструктор класса __init__: принимает объект root, который является главным окном приложения, и вызывает метод create_widgets для создания виджетов интерфейса.
-- Метод create_widgets: создает виджеты для ввода данных о тренировке (название упражнения, вес, количество повторений), кнопки для добавления записи о тренировке и просмотра сохраненных записей.
-- Метод add_entry: считывает данные из полей ввода, проверяет их наличие, создает словарь с информацией о тренировке, добавляет его в список с данными и сохраняет изменения в файл. После добавления записи поля ввода очищаются, и пользователю показывается сообщение об успехе.
-- Метод view_records: загружает сохраненные данные и отображает их в новом окне с помощью виджета Treeview. Для каждой записи создается строка в таблице.
-
-Функция main:
-- Создает экземпляр Tk, который является главным окном приложения.
-- Создает экземпляр приложения TrainingLogApp, передавая ему главное окно.
-- Запускает главный цикл обработки событий Tkinter, чтобы окно приложения отображалось и реагировало на действия пользователя.
-
+=========================================
 Описание импортов:
-- import tkinter as tk: импорт основной библиотеки для создания графического пользовательского интерфейса
-- from tkinter import ttk, Toplevel, messagebox:
+* import os: стандартная библиотека в Python, которая позволяет работать с операционной системой,
+включая файловую систему, процессы и переменные окружения.
+Модуль os обеспечивает платформонезависимый доступ к различным функциям, что делает код более переносимым;
+
+* import tkinter as tk: импорт основной библиотеки для создания графического пользовательского интерфейса
+
+* from tkinter import ttk, Toplevel, messagebox, filedialog:
 1. модуль ttk предоставляет расширенные виджеты для Tkinter, такие, как стилизованные кнопки, метки и комбобоксы.
 2. класс Toplevel используется для создания новых окон, независимых от основного окна приложения.
-3. модуль messagebox позволяет отображать всплывающие окна с сообщениями, такими как предупреждения или ошибки;
-- import json: модуль json позволяет преобразовывать в строку (и преобразовывать из строки) данные в формате JSON
-- from datetime import datetime: класс datetime из модуля datetime предоставляет методы для работы с датами и временем.
-Это позволяет выполнять операции, такие как получение текущей даты и времени, форматирование и арифметику дат.
+3. модуль messagebox позволяет отображать всплывающие окна с сообщениями, такими как предупреждения или ошибки.
+4. модуль filedialog предоставляет функции для открытия и сохранения файлов через диалоговые окна.
+
+* from PIL import Image, ImageTk:
+1. PIL (Pillow): библиотека для работы с изображениями, которая позволяет открывать, изменять и сохранять
+различные форматы изображений.
+2. класс Image предоставляет методы для создания, открытия и манипуляции изображениями.
+С его помощью можно выполнять такие операции, как изменение размера, поворот, обрезка, фильтрация и многое другое.
+3. модуль ImageTk обеспечивает связь между библиотекой PIL и tkinter, позволяя использовать изображения
+в графических интерфейсах.
+
+* import json: позволяет преобразовывать в строку (и преобразовывать из строки) данные в формате JSON
+
+* модуль csv: предоставляет инструменты для чтения и записи данных в формате CSV.
+Он поддерживает различные конфигурации, включая разные разделители, кавычки и кодировки.
+
+* from datetime import datetime, time:
+1. класс datetime предоставляет методы для работы с датами и временем. Это позволяет выполнять такие операции,
+как получение текущей даты и времени, форматирование и арифметику дат.
+2. класс time представляет собой объект времени (час, минуты, секунды, микросекунды) без привязки к конкретной дате.
+Он позволяет создавать, сравнивать и выполнять операции с временными значениями.
+
+* from tkcalendar import DateEntry:
+1. библиотека tkcalendar расширяет возможности стандартной библиотеки tkinter, добавляя функциональность для работы
+с календарями и выбора дат. Она позволяет интегрировать календарные виджеты в графические интерфейсы.
+2. класс DateEntry представляет собой виджет, который позволяет пользователю выбирать дату из выпадающего календаря
+или вручную вводить дату в текстовое поле. Это удобно для форм, где требуется вводить даты.
+
+* from matplotlib.figure import Figure:
+1. библиотека matplotlib используется для построения графиков и визуализации данных в Python. Она позволяет
+создавать статические, анимационные и интерактивные графики.
+2. класс Figure представляет собой основное окно для построения графиков. Он управляет размещением этих окон,
+их размерами и другими параметрами.
+
+* from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg:
+1. модуль matplotlib.backends.backend_tkagg используется для интеграции графиков Matplotlib в приложения на tkinter;
+2. класс FigureCanvasTkAgg связывает объект Figure (график Matplotlib) с виджетами tkinter.
+Он позволяет отображать графики в tkinter приложениях.
+=========================================
+
+Структура программы:
+** В директории "icons" содержатся файлы с иконками, соответствующие основным действиям пользователя
+(добавление, просмотр, фильтрация записей и др.)
+
+** Переменная data_file хранит имя файла по умолчанию, в который будут сохраняться данные о тренировках в формате JSON
+
+** Основные функции программы:
+- resize_image: для изменения размера изображения иконок. Новые размеры для каждой иконки указываются
+в соответствующем методе класса TrainingLogApp;
+- load_data: загрузка из JSON файла данных о тренировках. Применены обработки исключений для обработки возможных ошибок;
+- save_data: принимает данные о тренировках в виде списка словарей и сохраняет их в файл в формате JSON.
+Данные форматируются с отступом для лучшей читаемости.
+
+** Класс TrainingLogApp:
+- конструктор класса __init__: принимает объект root, который является главным окном приложения, и вызывает метод
+create_widgets для создания виджетов интерфейса;
+- метод create_widgets: создает виджеты для ввода данных, кнопки для добавления записи о тренировке, просмотра
+и фильтрации сохраненных записей. Также реализованы кнопки экспорта записей в файлы CSV формата и импорта записей
+из них, кнопки формирования статистической информации и построения графиков;
+- метод update_exercise_filter: обновляет список доступных упражнений для фильтрации;
+- метод add_entry: считывает данные из полей ввода, проверяет их наличие, создает словарь с информацией о тренировке,
+добавляет его в список с данными и сохраняет изменения в файл;
+- метод view_records: загружает сохраненные данные и отображает их в новом окне с помощью виджета Treeview.
+Для каждой записи создается строка в таблице;
+- метод filter_records: метод фильтрации записей по диапазону дат и упражнению;
+- метод export_to_csv: применяется для экспорта данных в формат CSV. Пользователь задает имя файла в диалоговом окне,
+а файл сохраняется в папке files внутри проекта;
+- метод import_from_csv: используется для импорта данных из CSV файла. Пользователь выбирает файл, и данные из него
+добавляются в журнал;
+- метод edit_record: необходим для редактирования выбранной записи;
+- метод delete_record используется для удаления выбранной записи;
+- метод show_statistics: отображение статистики по выполненным упражнениям;
+- метод show_charts: для визуализации прогресса по упражнениям. Применяется для построения графиков изменения веса
+и количества повторов упражнений. Графики также сохраняются в формате "png" в директории "images".
+
+** Функция main:
+- Создает экземпляр Tk, который является главным окном приложения.
+- Создает экземпляр приложения TrainingLogApp, передавая ему главное окно.
+- Запускает главный цикл обработки событий Tkinter, чтобы окно приложения отображалось и реагировало
+на действия пользователя.
 """
+
 import os
 import tkinter as tk
-from os import write
 from tkinter import ttk, Toplevel, messagebox, filedialog
 from PIL import Image, ImageTk
 import json
 import csv
 from datetime import datetime, time
 from tkcalendar import DateEntry
-from PIL.ImageOps import expand
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # Файлы с иконками
-add_icon_path = 'images/add.png'
-view_icon_path = 'images/eye.png'
-export_icon_path = 'images/export.png'
-import_icon_path = 'images/import.png'
-stats_icon_path = 'images/stats.png'
+add_icon_path = 'icons/add.png'
+view_icon_path = 'icons/eye.png'
+filter_icon_path = 'icons/filter.png'
+export_icon_path = 'icons/export.png'
+import_icon_path = 'icons/import.png'
+stats_icon_path = 'icons/stats.png'
+chart_icon_path = 'icons/chart.png'
 
 # Файл (по умолчанию) для сохранения данных
 data_file = 'training_log.json'
@@ -61,7 +137,7 @@ def resize_image(image_path, new_width, new_height):
 
 def load_data():
     """
-    Загрузка данных о тренировках из файла. Применены обработки исключений для обработки возможных ошибок.
+    Загрузка данных о тренировках из JSON файла. Применены обработки исключений для обработки возможных ошибок.
     """
     try:
         with open(data_file, 'r') as file:
@@ -81,9 +157,11 @@ def load_data():
 
 def save_data(data):
     """
-    Сохранение данных о тренировках в файл
+    Принимает данные о тренировках в виде списка словарей и сохраняет их в файл в формате JSON.
+    Данные форматируются с отступом для лучшей читаемости
     """
-    messagebox.showinfo("Сохранение файла", "Выберите, куда сохранить ваш журнал тренировок или нажмите отмену для сохранения в файл по умолчанию")
+    messagebox.showinfo("Сохранение файла", "Выберите, куда сохранить ваш журнал тренировок "
+                                            "или нажмите отмену для сохранения в файл по умолчанию")
     file_path = filedialog.asksaveasfilename(
         defaultextension=".json",
         filetypes=[("JSON files", ".json"), ("ALL files", '*.*')],
@@ -145,8 +223,10 @@ class TrainingLogApp:
     """
     def __init__(self, root):
         self.root = root
+        root.geometry("500x400")
         root.title("Дневник тренировок")
         self.exercises = []  # Список для хранения уникальных упражнений
+        self.chart_counter = 1  # Инициализация счетчика графиков
         self.create_widgets()
         self.update_exercise_filter()  # Обновляем список упражнений
 
@@ -160,6 +240,7 @@ class TrainingLogApp:
         self.main_frame = ttk.Frame(self.root)
         self.main_frame.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
+        # Виджеты ввода информации
         self.datetime_picker = DateTimePicker(self.main_frame)
         self.datetime_picker.grid(column=0, row=0, columnspan=2, sticky=tk.EW)
 
@@ -198,7 +279,7 @@ class TrainingLogApp:
         )
         self.view_button.grid(column=0, row=5, columnspan=2, pady=5)
 
-        # Поля для выбора даты
+        # Поля для фильтрации
         self.start_date_label = ttk.Label(self.main_frame, text="Дата начала")
         self.start_date_label.grid(column=0, row=6, sticky=tk.W)
         self.start_date_entry = DateEntry(self.main_frame, date_pattern='dd/mm/yyyy')
@@ -216,14 +297,19 @@ class TrainingLogApp:
         self.exercise_filter_entry.grid(column=1, row=8, sticky=tk.EW)
 
         # Формируем кнопку фильтра записей по дате и упражнению
-        self.filter_button = ttk.Button(self.main_frame, text="Отфильтровать записи", command=self.filter_records)
+        self.filter_icon = resize_image(filter_icon_path, 20, 20)
+        self.filter_button = ttk.Button(
+            self.main_frame,
+            text="Отфильтровать записи",
+            image=self.filter_icon,
+            compound="left",
+            command=self.filter_records
+        )
         self.filter_button.grid(column=0, row=9, columnspan=2, pady=5)
 
-        # Контейнер для кнопок "Экспорт в CSV" и "Импорт из CSV" - чтобы эти кнопки расположить на одной строке
+        # Контейнер для кнопок экспорта и импорта
         self.csv_frame = ttk.Frame(self.main_frame)
-        self.csv_frame.grid(column=0, row=10, columnspan=2, pady=5)
-
-        # Настраиваем центральное расположение кнопок
+        self.csv_frame.grid(column=0, row=10, columnspan=2, pady=5, sticky=tk.EW)
         self.csv_frame.columnconfigure(0, weight=1)
         self.csv_frame.columnconfigure(1, weight=1)
 
@@ -249,16 +335,33 @@ class TrainingLogApp:
         )
         self.import_button.grid(column=1, row=0, padx=(10, 0), sticky=tk.W)
 
+        # Контейнер для кнопок статистики и визуализации
+        self.stats_charts_frame = ttk.Frame(self.main_frame)
+        self.stats_charts_frame.grid(column=0, row=11, columnspan=2, pady=5, sticky=tk.EW)
+        self.stats_charts_frame.columnconfigure(0, weight=1)
+        self.stats_charts_frame.columnconfigure(1, weight=1)
+
         # Кнопка формирования статистики
         self.stats_icon = resize_image(stats_icon_path, 20, 30)
         self.stats_button = ttk.Button(
-            self.main_frame,
+            self.stats_charts_frame,
             text="Статистика",
             image=self.stats_icon,
             compound="left",
             command=self.show_statistics
         )
-        self.stats_button.grid(column=0, row=11, columnspan=2, pady=5)
+        self.stats_button.grid(column=0, row=0, padx=5, sticky=tk.E)
+
+        # Кнопка визуализации (построения графиков)
+        self.chart_icon = resize_image(chart_icon_path, 40, 30)
+        self.chart_button = ttk.Button(
+            self.stats_charts_frame,
+            text="Визуализация",
+            image=self.chart_icon,
+            compound="left",
+            command=self.show_charts
+        )
+        self.chart_button.grid(column=1, row=0, padx=5, sticky=tk.W)
 
         # Настройки колонок в основном фрейме при изменении размера окна
         self.main_frame.columnconfigure(1, weight=1)
@@ -651,6 +754,81 @@ class TrainingLogApp:
                 stats_window,
                 text=f"{exercise}: {stats['weight']:.2f} кг, {stats['repetitions']} повторений").pack(pady=2)
 
+    def show_charts(self):
+        """
+        Метод для визуализации прогресса по упражнениям.
+        """
+        # Получаем диапазон дат
+        start_date = self.start_date_entry.get_date()
+        end_date = self.end_date_entry.get_date()
+        exercise_filter = self.exercise_filter_entry.get().strip()
+
+        start_datetime = datetime.combine(start_date, time.min)
+        end_datetime = datetime.combine(end_date, time.max)
+
+        if start_datetime > end_datetime:
+            messagebox.showerror("Ошибка!", "Дата начала не может быть позже даты окончания.")
+            return
+
+        # Фильтрация данных
+        data = load_data()
+        filtered_records = [
+            entry for entry in data
+            if start_datetime <= datetime.strptime(entry['datetime'], '%d/%m/%Y %H:%M') <= end_datetime
+               and (exercise_filter.lower() in entry['exercise'].lower() if exercise_filter else True)
+        ]
+
+        if not filtered_records:
+            messagebox.showinfo("Нет данных", "Нет данных для отображения графиков.")
+            return
+
+        # Данные для графиков
+        dates = [datetime.strptime(entry['datetime'], '%d/%m/%Y %H:%M') for entry in filtered_records]
+        weights = [float(entry['weight']) for entry in filtered_records]
+        repetitions = [int(entry['repetitions']) for entry in filtered_records]
+
+        # Уникальный идентификатор для файлов с графиками
+        file_id = self.chart_counter  # Используем счетчик
+        self.chart_counter += 1  # Увеличиваем счетчик для следующего графика
+
+        # График веса
+        fig1 = Figure(figsize=(8, 6), dpi=100)
+        weight_ax = fig1.add_subplot(111)
+        weight_ax.plot(dates, weights, marker='o', label='Вес (кг)', color='blue')
+        weight_ax.set_title("Изменение веса")
+        weight_ax.set_ylabel("Вес (кг)")
+        weight_ax.grid()
+        weight_path = os.path.join('images', f'weight_chart_{file_id}.png')
+        fig1.savefig(weight_path)
+
+        # Открытие окна для графика веса
+        weight_window = Toplevel(self.root)
+        weight_window.title("График веса")
+        weight_window.geometry("800x600")
+        canvas1 = FigureCanvasTkAgg(fig1, master=weight_window)
+        canvas1.draw()
+        canvas1.get_tk_widget().pack(expand=True, fill=tk.BOTH)
+
+        # График повторений
+        fig2 = Figure(figsize=(8, 6), dpi=100)
+        repetition_ax = fig2.add_subplot(111)
+        repetition_ax.plot(dates, repetitions, marker='o', label='Повторения', color='green')
+        repetition_ax.set_title("Изменение повторений")
+        repetition_ax.set_ylabel("Повторения")
+        repetition_ax.grid()
+        repetition_path = os.path.join('images', f'repetitions_chart_{file_id}.png')
+        fig2.savefig(repetition_path)
+
+        # Открытие окна для графика повторений
+        repetition_window = Toplevel(self.root)
+        repetition_window.title("График повторений")
+        repetition_window.geometry("800x600")
+        canvas2 = FigureCanvasTkAgg(fig2, master=repetition_window)
+        canvas2.draw()
+        canvas2.get_tk_widget().pack(expand=True, fill=tk.BOTH)
+
+        # Уведомление о сохранении
+        messagebox.showinfo("Графики сохранены", f"Графики сохранены:\n{weight_path}\n{repetition_path}")
 
 def main():
     root = tk.Tk()
